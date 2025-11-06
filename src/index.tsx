@@ -94,9 +94,10 @@ const server = serve({
             return new Response("File not found", { status: 404 });
           }
 
-          await Bun.file(fileRecord.path).delete();
-
+          // Delete metadata first, then file to avoid orphaned metadata
           deleteFileMetadataByHash(hash);
+
+          await Bun.file(fileRecord.path).delete();
 
           return new Response("File deleted", { status: 200 });
         } catch (error) {
