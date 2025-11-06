@@ -56,6 +56,9 @@ export const Toolbar = ({
     if (!file) return;
 
     mutation.mutate(file);
+
+    // Reset input to allow re-uploading the same file
+    event.target.value = "";
   };
 
   return (
