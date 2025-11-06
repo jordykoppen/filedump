@@ -40,7 +40,7 @@ export function App() {
   const filterItems = (query: string) => {
     if (!data) return [];
     const filteredItems = data.filter(
-      ({ name, hash, mimeType, createdAt }: BunStoreFile) =>
+      ({ name, hash, mimeType }: BunStoreFile) =>
         [name, hash, mimeType]
           .map((field) => field.toLowerCase())
           .some((field) => field.includes(query.toLowerCase()))
