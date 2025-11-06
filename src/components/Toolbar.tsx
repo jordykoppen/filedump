@@ -6,14 +6,21 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 
-const postFile = (file: File) => {
+const postFile = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  return fetch("/api/file", {
+  const response = await fetch("/api/file", {
     method: "POST",
     body: formData,
   });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Upload failed with status ${response.status}`);
+  }
+
+  return response;
 };
 
 export const Toolbar = ({
@@ -32,6 +39,10 @@ export const Toolbar = ({
     mutationFn: postFile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files"] });
+    },
+    onError: (error) => {
+      console.error("Upload failed:", error);
+      alert("Failed to upload file. Please try again.");
     },
   });
 
