@@ -1,7 +1,7 @@
 import { serve } from "bun";
 import index from "./index.html";
 import { APIGetFileInput, APISaveFileInput } from "./schemas";
-import { fileHasher } from "./utils/crypto";
+import { hashFile } from "./utils/crypto";
 import {
   checkFileExists,
   deleteFileMetadataByHash,
@@ -34,7 +34,7 @@ const server = serve({
           });
 
           const arrayBuffer = await file.arrayBuffer();
-          const fileHash = fileHasher.update(arrayBuffer).digest("hex");
+          const fileHash = await hashFile(arrayBuffer);
 
           const fileExists = checkFileExists(fileHash);
 
