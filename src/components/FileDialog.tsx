@@ -2,19 +2,45 @@ import type { BunStoreFile } from "@/schemas";
 import { formatBytes } from "@/utils/formatBytes";
 import { format } from "date-fns";
 import { XIcon } from "@phosphor-icons/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface FileDialogProps {
   file: BunStoreFile;
   onClose: () => void;
 }
 
-export const FileDialog = ({ file, onClose }: FileDialogProps) => {
-  const handleDelete = (hash: string) => {
-    fetch(`/api/file/${hash}`, {
-      method: "DELETE",
-    });
+const deleteFile = async (hash: string) => {
+  const response = await fetch(`/api/file/${hash}`, {
+    method: "DELETE",
+  });
 
-    onClose();
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Delete failed with status ${response.status}`);
+  }
+
+  return response;
+};
+
+export const FileDialog = ({ file, onClose }: FileDialogProps) => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteFile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["files"] });
+      onClose();
+    },
+    onError: (error) => {
+      console.error("Delete failed:", error);
+      alert("Failed to delete file. Please try again.");
+    },
+  });
+
+  const handleDelete = (hash: string) => {
+    if (confirm("Are you sure you want to delete this file?")) {
+      deleteMutation.mutate(hash);
+    }
   };
 
   return (
