@@ -22,7 +22,7 @@ export const FileList = ({
                 className="font-mono cursor-pointer hover:bg-green-950"
                 onClick={setSelectedId.bind(null, file.hash)}
               >
-                <td className="px-2 py-1 ">{file.hash.slice(0, 6)}</td>
+                <td className="px-2 py-1 ">{file.hash.slice(0, 8)}</td>
                 <td className="px-2 py-1 text-white font-sans">{file.name}</td>
                 <td className="px-2 py-1 lowercase">
                   {formatBytes(file.size)}
