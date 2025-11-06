@@ -12,7 +12,8 @@ database.run(`
     path TEXT,
     size INTEGER,
     createdAt TEXT
-  )
+  );
+  CREATE INDEX IF NOT EXISTS idx_createdAt ON files(createdAt DESC);
 `);
 
 export function getAllFiles(): BunStoreFile[] {
