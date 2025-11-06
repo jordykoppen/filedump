@@ -73,7 +73,7 @@ export const FileDialog = ({ file, onClose }: FileDialogProps) => {
         </p>
         <p className=" bg-gray-950 p-2 rounded text-xs break-all text-green-500">
           <small className="block text-gray-500 mb-px">path</small>
-          {file.path.slice(1, -1)}
+          {file.path.slice(1)}
         </p>
         <div className="flex justify-end gap-2">
           <button
