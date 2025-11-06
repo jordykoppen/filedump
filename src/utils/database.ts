@@ -43,11 +43,11 @@ export function getFileByHash(hash: string): BunStoreFile | undefined {
 }
 
 export function insertFileMetadata(input: BunStoreFile): BunStoreFile {
-  database
+  const result = database
     .prepare<BunStoreFile, [string, string, string, string, number, string]>(
-      "INSERT INTO files (name, mimeType, hash, path, size, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO files (name, mimeType, hash, path, size, createdAt) VALUES (?, ?, ?, ?, ?, ?) RETURNING *"
     )
-    .run(
+    .get(
       input.name,
       input.mimeType,
       input.hash,
@@ -56,11 +56,7 @@ export function insertFileMetadata(input: BunStoreFile): BunStoreFile {
       input.createdAt
     );
 
-  return BunStoreFile.parse(
-    database
-      .prepare<BunStoreFile, string>("SELECT * FROM files WHERE hash = ?")
-      .get(input.hash)
-  );
+  return BunStoreFile.parse(result);
 }
 
 export function deleteFileMetadataByHash(hash: string): void {
