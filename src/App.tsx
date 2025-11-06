@@ -1,5 +1,5 @@
 import "./index.css";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { BunStoreFile } from "./schemas";
 import { useDebounce } from "./hooks/useDebounce";
 import { FileDialog } from "./components/FileDialog";
@@ -37,16 +37,19 @@ export function App() {
     setSearchItems(undefined);
   };
 
-  const filterItems = (query: string) => {
-    if (!data) return [];
-    const filteredItems = data.filter(
-      ({ name, hash, mimeType }: BunStoreFile) =>
-        [name, hash, mimeType]
-          .map((field) => field.toLowerCase())
-          .some((field) => field.includes(query.toLowerCase()))
-    );
-    setSearchItems(filteredItems);
-  };
+  const filterItems = useCallback(
+    (query: string) => {
+      if (!data) return [];
+      const filteredItems = data.filter(
+        ({ name, hash, mimeType }: BunStoreFile) =>
+          [name, hash, mimeType]
+            .map((field) => field.toLowerCase())
+            .some((field) => field.includes(query.toLowerCase()))
+      );
+      setSearchItems(filteredItems);
+    },
+    [data]
+  );
 
   const debouncedFilterItems = useDebounce(filterItems, 200);
 
