@@ -57,8 +57,9 @@ const server = serve({
 
           return Response.json(insertedFileMetadata);
         } catch (error) {
-          console.log(error);
-          return new Response("Invalid file data", { status: 400 });
+          console.error("File upload error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Invalid file data";
+          return new Response(errorMessage, { status: 400 });
         }
       },
     },
@@ -79,10 +80,9 @@ const server = serve({
             },
           });
         } catch (error) {
-          return Response.json(
-            { error },
-            { status: 400, statusText: "Invalid request" }
-          );
+          console.error("File download error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Invalid request";
+          return new Response(errorMessage, { status: 400 });
         }
       },
       async DELETE(request) {
@@ -101,10 +101,9 @@ const server = serve({
 
           return new Response("File deleted", { status: 200 });
         } catch (error) {
-          return Response.json(
-            { error },
-            { status: 400, statusText: "Invalid request" }
-          );
+          console.error("File deletion error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Invalid request";
+          return new Response(errorMessage, { status: 400 });
         }
       },
     },
