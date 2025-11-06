@@ -62,22 +62,6 @@ const server = serve({
         }
       },
     },
-    "/api/file/hash": {
-      async POST(request) {
-        try {
-          const { file } = APISaveFileInput.parse(await request.json());
-
-          const arrayBuffer = await file.arrayBuffer();
-          const fileHash = fileHasher.update(arrayBuffer).digest("hex");
-
-          const fileExists = checkFileExists(fileHash);
-
-          return Response.json({ hash: fileHash, exists: fileExists });
-        } catch (error) {
-          return new Response("Invalid file data", { status: 400 });
-        }
-      },
-    },
     "/api/file/:hash": {
       async GET(request) {
         try {
