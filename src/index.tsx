@@ -16,6 +16,7 @@ const server = serve({
     console.log(`Unhandled request: ${req.method} ${req.url}`);
     return new Response("Not Found", { status: 404 });
   },
+  port: parseInt(cliArguments.port, 10),
   maxRequestBodySize: 1024 * 1024 * 1024, // 1 GB
   routes: {
     "/*": index,
