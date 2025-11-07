@@ -1,3 +1,4 @@
+import cliArguments from "./utils/cliArguments";
 import { serve } from "bun";
 import index from "./index.html";
 import { APIGetFileInput, APISaveFileInput } from "./schemas";
@@ -9,7 +10,6 @@ import {
   getFileByHash,
   insertFileMetadata,
 } from "./utils/database";
-import cliArguments from "./utils/cliArguments";
 
 const server = serve({
   fetch: (req) => {
@@ -58,7 +58,8 @@ const server = serve({
           return Response.json(insertedFileMetadata);
         } catch (error) {
           console.error("File upload error:", error);
-          const errorMessage = error instanceof Error ? error.message : "Invalid file data";
+          const errorMessage =
+            error instanceof Error ? error.message : "Invalid file data";
           return new Response(errorMessage, { status: 400 });
         }
       },
@@ -81,7 +82,8 @@ const server = serve({
           });
         } catch (error) {
           console.error("File download error:", error);
-          const errorMessage = error instanceof Error ? error.message : "Invalid request";
+          const errorMessage =
+            error instanceof Error ? error.message : "Invalid request";
           return new Response(errorMessage, { status: 400 });
         }
       },
@@ -102,7 +104,8 @@ const server = serve({
           return new Response("File deleted", { status: 200 });
         } catch (error) {
           console.error("File deletion error:", error);
-          const errorMessage = error instanceof Error ? error.message : "Invalid request";
+          const errorMessage =
+            error instanceof Error ? error.message : "Invalid request";
           return new Response(errorMessage, { status: 400 });
         }
       },
