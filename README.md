@@ -4,6 +4,8 @@ FileDump is a stupid simple, lightweight, self-hosted file storage server. Drop 
 
 I created this service to support my n8n workflows that work with binaries. I was looking for a way to quickly store my email attachments without duplication.
 
+[find API docs here](./docs/API.md)
+
 ## Why FileDump?
 
 - **Zero Configuration** - Works out of the box, no complex setup
