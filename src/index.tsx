@@ -16,10 +16,6 @@ const maxFileSizeBytes = parseFileSize(cliArguments.maxFileSize);
 console.log(`✓ Max file size: ${cliArguments.maxFileSize} (${maxFileSizeBytes} bytes)`);
 
 const server = serve({
-  fetch: (req) => {
-    console.log(`Unhandled request: ${req.method} ${req.url}`);
-    return new Response("Not Found", { status: 404 });
-  },
   port: parseInt(cliArguments.port, 10),
   maxRequestBodySize: maxFileSizeBytes,
   routes: {
