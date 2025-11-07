@@ -11,6 +11,14 @@ export const FileList = ({
   setSelectedId: (id: string) => void;
   footer: string;
 }) => {
+  const handleRowEnterOrSpacebar =
+    (fileHash: string) => (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setSelectedId(fileHash);
+      }
+    };
+
   return (
     <>
       <div className="overflow-y-auto min-h-0">
@@ -19,8 +27,12 @@ export const FileList = ({
             {files.map((file: BunStoreFile) => (
               <tr
                 key={file.hash}
-                className="font-mono cursor-pointer hover:bg-green-950"
+                className="font-mono cursor-pointer hover:bg-green-950  focus:bg-green-950 focus:outline-none"
                 onClick={setSelectedId.bind(null, file.hash)}
+                onKeyDown={handleRowEnterOrSpacebar(file.hash)}
+                tabIndex={0}
+                role="button"
+                aria-label={`View details for ${file.name}`}
               >
                 <td className="px-2 py-1 ">{file.hash.slice(0, 8)}</td>
                 <td className="px-2 py-1 text-white font-sans">{file.name}</td>
