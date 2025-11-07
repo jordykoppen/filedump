@@ -95,15 +95,39 @@ jobs:
             - **Windows x64**: `filedump-windows-x64.exe`
 
             ### Usage
+
+            **macOS:**
             ```bash
-            # Make executable (Linux/macOS)
-            chmod +x filedump-*
+            # Remove quarantine attribute (required on macOS)
+            xattr -d com.apple.quarantine filedump-darwin-*
+
+            # Make executable
+            chmod +x filedump-darwin-*
 
             # Run the server
-            ./filedump-linux-x64
+            ./filedump-darwin-arm64  # Apple Silicon
+            ./filedump-darwin-x64    # Intel
+            ```
 
-            # View help
-            ./filedump-linux-x64 --help
+            **Linux:**
+            ```bash
+            # Make executable
+            chmod +x filedump-linux-*
+
+            # Run the server
+            ./filedump-linux-x64      # x64
+            ./filedump-linux-arm64    # ARM64
+            ```
+
+            **Windows:**
+            ```powershell
+            # Run directly
+            .\filedump-windows-x64.exe
+            ```
+
+            **View help:**
+            ```bash
+            ./filedump-* --help
             ```
 
             ---
