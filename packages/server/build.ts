@@ -38,7 +38,7 @@ const outfile = Outfile.parse(values.outfile);
 
 console.log(`Building filedump for target ${target} at ${outfile}`);
 
-await Bun.build({
+const result = await Bun.build({
   root: __dirname,
   entrypoints: [resolve(__dirname, "src/index.ts")],
   plugins: [bunPluginTailwind],
@@ -47,5 +47,13 @@ await Bun.build({
     target,
   },
 });
+
+if (!result.success) {
+  console.error("Build failed:");
+  for (const log of result.logs) {
+    console.error(log);
+  }
+  process.exit(1);
+}
 
 console.log("Build complete.");
