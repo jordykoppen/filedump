@@ -35,25 +35,31 @@ const server = serve({
 
           const arrayBuffer = await file.arrayBuffer();
           const fileHash = await hashFile(arrayBuffer);
-
-          const fileExists = checkFileExists(fileHash);
-
-          if (fileExists) {
-            return new Response("File already exists", { status: 409 });
-          }
-
           const path = `${cliArguments.fileDirectory}/${fileHash}`;
 
-          await Bun.write(path, arrayBuffer);
+          // Try to insert metadata first to prevent race condition
+          // If another request already inserted this hash, the PRIMARY KEY constraint will fail
+          let insertedFileMetadata;
+          try {
+            insertedFileMetadata = insertFileMetadata({
+              name: file.name,
+              hash: fileHash,
+              mimeType: file.type,
+              path,
+              createdAt: new Date().toISOString(),
+              size: file.size,
+            });
+          } catch (dbError) {
+            // Check if duplicate file already exists
+            if (checkFileExists(fileHash)) {
+              return new Response("File already exists", { status: 409 });
+            }
+            // If not a duplicate, re-throw the error
+            throw dbError;
+          }
 
-          const insertedFileMetadata = insertFileMetadata({
-            name: file.name,
-            hash: fileHash,
-            mimeType: file.type,
-            path,
-            createdAt: new Date().toISOString(),
-            size: file.size,
-          });
+          // Only write file after successful database insert
+          await Bun.write(path, arrayBuffer);
 
           return Response.json(insertedFileMetadata);
         } catch (error) {
