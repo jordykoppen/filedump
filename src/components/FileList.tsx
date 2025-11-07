@@ -35,7 +35,9 @@ export const FileList = ({
                 aria-label={`View details for ${file.name}`}
               >
                 <td className="px-2 py-1 ">{file.hash.slice(0, 8)}</td>
-                <td className="px-2 py-1 text-white font-sans">{file.name}</td>
+                <td className="px-2 py-1 text-white font-sans max-w-56 truncate">
+                  {file.name}
+                </td>
                 <td className="px-2 py-1 lowercase">
                   {formatBytes(file.size)}
                 </td>
