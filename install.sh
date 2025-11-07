@@ -37,7 +37,7 @@ echo ""
 
 # Download binary
 echo "Downloading FileDump..."
-DOWNLOAD_URL="https://github.com/jordykoppen/file-dump/releases/latest/download/$BINARY"
+DOWNLOAD_URL="https://github.com/jordykoppen/filedump/releases/latest/download/$BINARY"
 curl -fsSL "$DOWNLOAD_URL" -o /tmp/filedump
 
 if [ $? -ne 0 ]; then

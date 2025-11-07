@@ -18,11 +18,18 @@ export const Header = () => {
         </div>
       </div>
       <div className="flex gap-2">
-        <a href="/docs" className="p-1 text-sm rounded border-gray-600">
+        <a
+          href="https://github.com/jordykoppen/filedump/blob/main/docs/API.md"
+          className="p-1 text-sm rounded border-gray-600"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
           docs
         </a>
         <a
-          href="https://github.com/jordykoppen/file-dump"
+          href="https://github.com/jordykoppen/filedump"
+          target="_blank"
+          rel="noreferrer noopener"
           className="p-2 text-white text-sm flex gap-2 items-center rounded border-gray-600"
         >
           <img src={GithubIcon} alt="GitHub Logo" className="h-4 w-4" />

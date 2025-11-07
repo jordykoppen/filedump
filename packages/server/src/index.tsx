@@ -27,7 +27,6 @@ const server = serve({
         return Response.json(getAllFiles());
       },
     },
-    // raw binary. not multipart/form-data
     "/api/file": {
       async POST(request) {
         try {

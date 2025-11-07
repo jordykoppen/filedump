@@ -27,7 +27,7 @@ I created this service to support my n8n workflows that work with binaries. I wa
 ### One-Line Install (Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jordykoppen/file-dump/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/jordykoppen/filedump/main/install.sh | sudo bash
 ```
 
 This will:
@@ -43,23 +43,23 @@ This will:
 
 ```bash
 # Linux x64
-wget https://github.com/jordykoppen/file-dump/releases/latest/download/filedump-linux-x64
+wget https://github.com/jordykoppen/filedump/releases/latest/download/filedump-linux-x64
 chmod +x filedump-linux-x64
 ./filedump-linux-x64
 
 # Linux ARM64
-wget https://github.com/jordykoppen/file-dump/releases/latest/download/filedump-linux-arm64
+wget https://github.com/jordykoppen/filedump/releases/latest/download/filedump-linux-arm64
 chmod +x filedump-linux-arm64
 ./filedump-linux-arm64
 
 # macOS (Apple Silicon)
-curl -LO https://github.com/jordykoppen/file-dump/releases/latest/download/filedump-darwin-arm64
+curl -LO https://github.com/jordykoppen/filedump/releases/latest/download/filedump-darwin-arm64
 xattr -d com.apple.quarantine filedump-darwin-arm64  # Remove quarantine
 chmod +x filedump-darwin-arm64
 ./filedump-darwin-arm64
 
 # macOS (Intel)
-curl -LO https://github.com/jordykoppen/file-dump/releases/latest/download/filedump-darwin-x64
+curl -LO https://github.com/jordykoppen/filedump/releases/latest/download/filedump-darwin-x64
 xattr -d com.apple.quarantine filedump-darwin-x64
 chmod +x filedump-darwin-x64
 ./filedump-darwin-x64
@@ -68,7 +68,7 @@ chmod +x filedump-darwin-x64
 **Or build from source:**
 
 ```bash
-git clone https://github.com/jordykoppen/file-dump.git
+git clone https://github.com/jordykoppen/filedump.git
 cd file-dump
 bun install
 bun build src/index.tsx --compile --outfile filedump
@@ -200,7 +200,7 @@ server {
 
 ```bash
 # Clone repository
-git clone https://github.com/jordykoppen/file-dump.git
+git clone https://github.com/jordykoppen/filedump.git
 cd file-dump
 
 # Install dependencies
@@ -237,5 +237,5 @@ Built with [Bun](https://bun.sh) - the fast all-in-one JavaScript runtime.
 
 ---
 
-**Need help?** [Open an issue](https://github.com/jordykoppen/file-dump/issues)
-**Love FileDump?** [Star the repo](https://github.com/jordykoppen/file-dump) ⭐
+**Need help?** [Open an issue](https://github.com/jordykoppen/filedump/issues)
+**Love FileDump?** [Star the repo](https://github.com/jordykoppen/filedump) ⭐
