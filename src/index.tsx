@@ -14,7 +14,9 @@ import {
 import { parseFileSize } from "./utils/parseFileSize";
 
 const maxFileSizeBytes = parseFileSize(cliArguments.maxFileSize);
-console.log(`✓ Max file size: ${cliArguments.maxFileSize} (${maxFileSizeBytes} bytes)`);
+console.log(
+  `✓ Max file size: ${cliArguments.maxFileSize} (${maxFileSizeBytes} bytes)`
+);
 
 const server = serve({
   port: parseInt(cliArguments.port, 10),
@@ -26,15 +28,28 @@ const server = serve({
         return Response.json(getAllFiles());
       },
     },
+    // raw binary. not multipart/form-data
     "/api/file": {
       async POST(request) {
         try {
-          const formData = await request.formData();
-          const { file } = APISaveFileInput.parse({
-            file: formData.get("file"),
-          });
+          const arrayBuffer = await request.arrayBuffer();
+          const fileName = request.headers.get("X-Filename");
+          const fileType = request.headers.get("Content-Type");
 
-          const arrayBuffer = await file.arrayBuffer();
+          if (!fileName) {
+            return new Response("Missing X-Filename header", { status: 400 });
+          }
+
+          if (!fileType) {
+            return new Response("Missing Content-Type header", { status: 400 });
+          }
+
+          if (arrayBuffer.byteLength > maxFileSizeBytes) {
+            return new Response("File size exceeds maximum limit", {
+              status: 413,
+            });
+          }
+
           const fileHash = await hashFile(arrayBuffer);
           const path = `${cliArguments.fileDirectory}/${fileHash}`;
 
@@ -43,12 +58,12 @@ const server = serve({
           let insertedFileMetadata;
           try {
             insertedFileMetadata = insertFileMetadata({
-              name: file.name,
+              name: fileName,
               hash: fileHash,
-              mimeType: file.type,
+              mimeType: fileType,
               path,
               createdAt: new Date().toISOString(),
-              size: file.size,
+              size: arrayBuffer.byteLength,
             });
           } catch (dbError) {
             // Check if duplicate file already exists
@@ -63,7 +78,9 @@ const server = serve({
           await Bun.write(path, arrayBuffer);
 
           console.log(
-            `[UPLOAD] ${file.name} (${fileHash.slice(0, 8)}...) - ${file.size} bytes`
+            `[UPLOAD] ${fileName} (${fileHash.slice(0, 8)}...) - ${
+              arrayBuffer.byteLength
+            } bytes`
           );
 
           return Response.json(insertedFileMetadata);
@@ -86,7 +103,9 @@ const server = serve({
           }
 
           console.log(
-            `[DOWNLOAD] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${fileRecord.size} bytes`
+            `[DOWNLOAD] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${
+              fileRecord.size
+            } bytes`
           );
 
           return new Response(Bun.file(fileRecord.path), {
@@ -117,7 +136,9 @@ const server = serve({
           await Bun.file(fileRecord.path).delete();
 
           console.log(
-            `[DELETE] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${fileRecord.size} bytes`
+            `[DELETE] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${
+              fileRecord.size
+            } bytes`
           );
 
           return new Response("File deleted", { status: 200 });

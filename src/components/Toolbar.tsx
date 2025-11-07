@@ -8,12 +8,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 
 const postFile = async (file: File) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
   const response = await fetch("/api/file", {
     method: "POST",
-    body: formData,
+    body: file,
+    headers: {
+      "X-Filename": file.name,
+      "Content-Type": file.type || "application/octet-stream",
+    },
   });
 
   if (!response.ok) {
