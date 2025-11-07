@@ -61,6 +61,10 @@ const server = serve({
           // Only write file after successful database insert
           await Bun.write(path, arrayBuffer);
 
+          console.log(
+            `[UPLOAD] ${file.name} (${fileHash.slice(0, 8)}...) - ${file.size} bytes`
+          );
+
           return Response.json(insertedFileMetadata);
         } catch (error) {
           console.error("File upload error:", error);
@@ -79,6 +83,10 @@ const server = serve({
           if (!fileRecord) {
             return new Response("File not found", { status: 404 });
           }
+
+          console.log(
+            `[DOWNLOAD] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${fileRecord.size} bytes`
+          );
 
           return new Response(Bun.file(fileRecord.path), {
             headers: {
@@ -106,6 +114,10 @@ const server = serve({
           deleteFileMetadataByHash(hash);
 
           await Bun.file(fileRecord.path).delete();
+
+          console.log(
+            `[DELETE] ${fileRecord.name} (${hash.slice(0, 8)}...) - ${fileRecord.size} bytes`
+          );
 
           return new Response("File deleted", { status: 200 });
         } catch (error) {
