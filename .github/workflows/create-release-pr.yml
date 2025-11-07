@@ -1,0 +1,219 @@
+name: Create Release PR
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-prepare-release:
+    name: Check and Prepare Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for existing release PR
+        id: check_pr
+        run: |
+          EXISTING_PR=$(gh pr list --base main --head release/* --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "Release PR already exists: #$EXISTING_PR"
+            exit 0
+          fi
+          echo "existing_pr=" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Calculate semantic version
+        if: steps.check_pr.outputs.existing_pr == ''
+        id: semver
+        run: |
+          # Get the latest release tag (or default to 0.0.0)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+
+          # Remove 'v' prefix if present
+          CURRENT_VERSION=${LATEST_TAG#v}
+
+          # Get commits since last tag
+          if [ "$LATEST_TAG" == "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s" -10)
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
+          fi
+
+          echo "Commits since $LATEST_TAG:"
+          echo "$COMMITS"
+
+          # Determine version bump type
+          HAS_BREAKING=false
+          HAS_FEAT=false
+          HAS_FIX=false
+          HAS_RELEVANT=false
+
+          while IFS= read -r commit; do
+            # Skip if commit is a merge commit from release PR
+            if echo "$commit" | grep -qE '^Merge pull request.*release/'; then
+              continue
+            fi
+
+            # Check for breaking changes
+            if echo "$commit" | grep -qE '^[a-z]+(\([^)]+\))?!:|BREAKING CHANGE:'; then
+              HAS_BREAKING=true
+              HAS_RELEVANT=true
+            fi
+
+            # Check for features
+            if echo "$commit" | grep -qE '^feat(\([^)]+\))?:'; then
+              HAS_FEAT=true
+              HAS_RELEVANT=true
+            fi
+
+            # Check for fixes
+            if echo "$commit" | grep -qE '^fix(\([^)]+\))?:'; then
+              HAS_FIX=true
+              HAS_RELEVANT=true
+            fi
+
+            # Check for other relevant types (perf, refactor)
+            if echo "$commit" | grep -qE '^(perf|refactor)(\([^)]+\))?:'; then
+              HAS_RELEVANT=true
+            fi
+          done <<< "$COMMITS"
+
+          # Calculate new version
+          if [ "$HAS_RELEVANT" = false ]; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No relevant changes for release (only docs, ci, chore, style, test)"
+            exit 0
+          fi
+
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          if [ "$HAS_BREAKING" = true ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            RELEASE_TYPE="major"
+          elif [ "$HAS_FEAT" = true ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            RELEASE_TYPE="minor"
+          else
+            PATCH=$((PATCH + 1))
+            RELEASE_TYPE="patch"
+          fi
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+
+          # Format commits for changelog
+          if [ "$LATEST_TAG" == "v0.0.0" ]; then
+            FORMATTED_COMMITS=$(git log --pretty=format:"- %s (%h)" -10)
+          else
+            FORMATTED_COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)")
+          fi
+
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$FORMATTED_COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "New version: $NEW_VERSION (type: $RELEASE_TYPE)"
+
+      - name: Create release branch and update files
+        if: steps.check_pr.outputs.existing_pr == '' && steps.semver.outputs.should_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.semver.outputs.new_version }}"
+          RELEASE_TYPE="${{ steps.semver.outputs.release_type }}"
+          COMMITS="${{ steps.semver.outputs.commits }}"
+
+          # Create release branch
+          git checkout -b "release/v${NEW_VERSION}"
+
+          # Update package.json version
+          cat package.json | jq --arg version "$NEW_VERSION" '.version = $version' > package.json.tmp
+          mv package.json.tmp package.json
+
+          # Create or update CHANGELOG.md
+          CURRENT_DATE=$(date +%Y-%m-%d)
+
+          if [ -f CHANGELOG.md ]; then
+            # Prepend to existing changelog
+            {
+              echo "# Changelog"
+              echo ""
+              echo "## [$NEW_VERSION] - $CURRENT_DATE"
+              echo ""
+              echo "$COMMITS"
+              echo ""
+              tail -n +2 CHANGELOG.md
+            } > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          else
+            # Create new changelog
+            {
+              echo "# Changelog"
+              echo ""
+              echo "All notable changes to this project will be documented in this file."
+              echo ""
+              echo "## [$NEW_VERSION] - $CURRENT_DATE"
+              echo ""
+              echo "$COMMITS"
+            } > CHANGELOG.md
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit changes
+          git add package.json CHANGELOG.md
+          git commit -m "chore: bump version to $NEW_VERSION"
+
+          # Push branch
+          git push origin "release/v${NEW_VERSION}"
+
+      - name: Create Release PR
+        if: steps.check_pr.outputs.existing_pr == '' && steps.semver.outputs.should_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.semver.outputs.new_version }}"
+          RELEASE_TYPE="${{ steps.semver.outputs.release_type }}"
+          COMMITS=$(cat <<'EOF'
+          ${{ steps.semver.outputs.commits }}
+          EOF
+          )
+
+          PR_BODY=$(cat <<EOF
+          ## Release v${NEW_VERSION}
+
+          **Type:** ${RELEASE_TYPE}
+
+          ### Changes
+
+          ${COMMITS}
+
+          ---
+
+          Merging this PR will trigger the build and release workflow.
+          EOF
+          )
+
+          gh pr create \
+            --base main \
+            --head "release/v${NEW_VERSION}" \
+            --title "Release v${NEW_VERSION}" \
+            --body "$PR_BODY"
+        env:
+          GH_TOKEN: ${{ github.token }}
