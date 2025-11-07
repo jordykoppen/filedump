@@ -1,5 +1,5 @@
-import type { BunStoreFile } from "@/schemas";
-import { formatBytes } from "@/utils/formatBytes";
+import type { BunStoreFile } from "@filedump/shared";
+import { formatBytes } from "@filedump/shared";
 import { format } from "date-fns";
 
 export const FileList = ({

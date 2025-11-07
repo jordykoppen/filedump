@@ -1,7 +1,7 @@
 import cliArguments from "./utils/cliArguments";
 import { serve } from "bun";
 import index from "./index.html";
-import { APIGetFileInput, APISaveFileInput } from "./schemas";
+import { APIGetFileInput, parseFileSize } from "@filedump/shared";
 import { hashFile } from "./utils/crypto";
 import {
   checkFileExists,
@@ -11,7 +11,6 @@ import {
   insertFileMetadata,
   closeDatabase,
 } from "./utils/database";
-import { parseFileSize } from "./utils/parseFileSize";
 
 const maxFileSizeBytes = parseFileSize(cliArguments.maxFileSize);
 console.log(

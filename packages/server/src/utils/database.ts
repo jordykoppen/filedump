@@ -1,6 +1,6 @@
-import { BunStoreFile } from "@/schemas";
 import { Database } from "bun:sqlite";
 import cliArguments from "./cliArguments";
+import { BunStoreFile } from "@filedump/shared";
 
 let database: Database;
 
@@ -10,7 +10,9 @@ try {
 } catch (error) {
   console.error(`✗ Failed to connect to database: ${cliArguments.db}`, error);
   throw new Error(
-    `Database connection failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    `Database connection failed: ${
+      error instanceof Error ? error.message : "Unknown error"
+    }`
   );
 }
 
@@ -30,7 +32,9 @@ try {
 } catch (error) {
   console.error("✗ Failed to initialize database schema", error);
   throw new Error(
-    `Database schema initialization failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    `Database schema initialization failed: ${
+      error instanceof Error ? error.message : "Unknown error"
+    }`
   );
 }
 
@@ -42,7 +46,9 @@ export function getAllFiles(): BunStoreFile[] {
   } catch (error) {
     console.error("Database error in getAllFiles:", error);
     throw new Error(
-      `Failed to retrieve files: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to retrieve files: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     );
   }
 }
@@ -63,7 +69,9 @@ export function checkFileExists(hash: string): boolean {
   } catch (error) {
     console.error("Database error in checkFileExists:", error);
     throw new Error(
-      `Failed to check file existence: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to check file existence: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     );
   }
 }
@@ -78,7 +86,9 @@ export function getFileByHash(hash: string): BunStoreFile | undefined {
   } catch (error) {
     console.error("Database error in getFileByHash:", error);
     throw new Error(
-      `Failed to get file by hash: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to get file by hash: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     );
   }
 }
@@ -107,11 +117,15 @@ export function insertFileMetadata(input: BunStoreFile): BunStoreFile {
 
 export function deleteFileMetadataByHash(hash: string): void {
   try {
-    database.prepare<void, string>("DELETE FROM files WHERE hash = ?").run(hash);
+    database
+      .prepare<void, string>("DELETE FROM files WHERE hash = ?")
+      .run(hash);
   } catch (error) {
     console.error("Database error in deleteFileMetadataByHash:", error);
     throw new Error(
-      `Failed to delete file metadata: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to delete file metadata: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     );
   }
 }

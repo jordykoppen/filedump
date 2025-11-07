@@ -34,8 +34,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 
-*.bun-build
-
-/files
-database.sqlite
+**/*.bun-build
+**/files
+**/database.sqlite
 /BunStore
