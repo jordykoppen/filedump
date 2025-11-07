@@ -8,10 +8,9 @@
   "scripts": {
     "dev": "bun --filter @filedump/server dev",
     "build": "bun --filter @filedump/server build",
-    "build:executable": "bun --filter @filedump/server build:executable",
     "start": "bun --filter @filedump/server start"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "1.3.1"
   }
 }
