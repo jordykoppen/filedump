@@ -1,0 +1,114 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            arch: linux-x64
+          - os: ubuntu-latest
+            target: bun-linux-arm64
+            arch: linux-arm64
+          - os: macos-latest
+            target: bun-darwin-x64
+            arch: darwin-x64
+          - os: macos-latest
+            target: bun-darwin-arm64
+            arch: darwin-arm64
+          - os: windows-latest
+            target: bun-windows-x64
+            arch: windows-x64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build executable
+        run: bun build src/index.tsx --compile --target ${{ matrix.target }} --outfile filedump-${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: filedump-${{ matrix.arch }}
+          path: filedump-${{ matrix.arch }}*
+          retention-days: 1
+
+  release:
+    name: Create Draft Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R ./artifacts
+
+      - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          name: "Release ${{ steps.vars.outputs.sha_short }}"
+          tag_name: "build-${{ steps.vars.outputs.sha_short }}"
+          body: |
+            ## FileDump Build
+
+            **Commit:** ${{ github.sha }}
+            **Branch:** main
+
+            ### Binaries
+            Download the appropriate binary for your platform:
+
+            - **Linux x64**: `filedump-linux-x64`
+            - **Linux ARM64**: `filedump-linux-arm64`
+            - **macOS Intel**: `filedump-darwin-x64`
+            - **macOS Apple Silicon**: `filedump-darwin-arm64`
+            - **Windows x64**: `filedump-windows-x64.exe`
+
+            ### Usage
+            ```bash
+            # Make executable (Linux/macOS)
+            chmod +x filedump-*
+
+            # Run the server
+            ./filedump-linux-x64
+
+            # View help
+            ./filedump-linux-x64 --help
+            ```
+
+            ---
+            *This is an automated draft release. Review and publish when ready.*
+          files: |
+            ./artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
