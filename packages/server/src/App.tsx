@@ -1,6 +1,6 @@
 import "./index.css";
 import { useState, useCallback } from "react";
-import { BunStoreFile } from "./schemas";
+import { BunStoreFile } from "@filedump/shared";
 import { useDebounce } from "./hooks/useDebounce";
 import { FileDialog } from "./components/FileDialog";
 import { Footer } from "./components/Footer";

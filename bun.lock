@@ -3,7 +3,15 @@
   "workspaces": {
     "": {
       "name": "bun-react-template",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
+    "packages/server": {
+      "name": "@filedump/server",
+      "version": "1.0.0",
       "dependencies": {
+        "@filedump/shared": "workspace:*",
         "@phosphor-icons/react": "^2.1.10",
         "@tanstack/react-query": "^5.90.7",
         "bun-plugin-tailwind": "^0.1.2",
@@ -13,7 +21,6 @@
         "react": "^19",
         "react-dom": "^19",
         "tailwindcss": "^4.1.16",
-        "zod": "^4.1.12",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -21,8 +28,24 @@
         "@types/react-dom": "^19",
       },
     },
+    "packages/shared": {
+      "name": "@filedump/shared",
+      "version": "1.0.0",
+      "dependencies": {
+        "clsx": "^2.1.1",
+        "tailwind-merge": "^3.3.1",
+        "zod": "^4.1.12",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
   },
   "packages": {
+    "@filedump/server": ["@filedump/server@workspace:packages/server"],
+
+    "@filedump/shared": ["@filedump/shared@workspace:packages/shared"],
+
     "@oven/bun-darwin-aarch64": ["@oven/bun-darwin-aarch64@1.3.1", "", { "os": "darwin", "cpu": "arm64" }, "sha512-7Rap1BHNWqgnexc4wLjjdZeVRQKtk534iGuJ7qZ42i/q1B+cxJZ6zSnrFsYmo+zreH7dUyUXL3AHuXGrl2772Q=="],
 
     "@oven/bun-darwin-x64": ["@oven/bun-darwin-x64@1.3.1", "", { "os": "darwin", "cpu": "x64" }, "sha512-wpqmgT/8w+tEr5YMGt1u1sEAMRHhyA2SKZddC6GCPasHxSqkCWOPQvYIHIApnTsoSsxhxP0x6Cpe93+4c7hq/w=="],
@@ -78,6 +101,8 @@
     "react-dom": ["react-dom@19.2.0", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.0" } }, "sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ=="],
 
     "scheduler": ["scheduler@0.27.0", "", {}, "sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q=="],
+
+    "tailwind-merge": ["tailwind-merge@3.3.1", "", {}, "sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g=="],
 
     "tailwindcss": ["tailwindcss@4.1.16", "", {}, "sha512-pONL5awpaQX4LN5eiv7moSiSPd/DLDzKVRJz8Q9PgzmAdd1R4307GQS2ZpfiN7ZmekdQrfhZZiSE5jkLR4WNaA=="],
 
