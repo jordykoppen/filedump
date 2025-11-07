@@ -11,13 +11,37 @@ import {
   insertFileMetadata,
 } from "./utils/database";
 
+// Parse file size string (e.g., "1GB", "500MB", "100KB") to bytes
+function parseFileSize(sizeStr: string): number {
+  const match = sizeStr.match(/^(\d+(?:\.\d+)?)(KB|MB|GB)$/i);
+  if (!match) {
+    throw new Error(
+      `Invalid file size format: "${sizeStr}". Use format like "1GB", "500MB", or "100KB"`
+    );
+  }
+
+  const value = parseFloat(match[1]);
+  const unit = match[2].toUpperCase();
+
+  const multipliers: Record<string, number> = {
+    KB: 1024,
+    MB: 1024 * 1024,
+    GB: 1024 * 1024 * 1024,
+  };
+
+  return Math.floor(value * multipliers[unit]);
+}
+
+const maxFileSizeBytes = parseFileSize(cliArguments.maxFileSize);
+console.log(`✓ Max file size: ${cliArguments.maxFileSize} (${maxFileSizeBytes} bytes)`);
+
 const server = serve({
   fetch: (req) => {
     console.log(`Unhandled request: ${req.method} ${req.url}`);
     return new Response("Not Found", { status: 404 });
   },
   port: parseInt(cliArguments.port, 10),
-  maxRequestBodySize: 1024 * 1024 * 1024, // 1 GB
+  maxRequestBodySize: maxFileSizeBytes,
   routes: {
     "/*": index,
     "/api/files": {

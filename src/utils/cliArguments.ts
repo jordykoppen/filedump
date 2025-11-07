@@ -17,6 +17,11 @@ const { values: cliArguments } = parseArgs({
       type: "string",
       default: "./database.sqlite",
     },
+    maxFileSize: {
+      type: "string",
+      short: "m",
+      default: "1GB",
+    },
     help: {
       type: "boolean",
       short: "h",
@@ -37,12 +42,16 @@ Options:
   -p, --port <port>           Server port (default: 3000)
   -d, --fileDirectory <path>  Directory to store files (default: ./files)
   --db <path>                 SQLite database path (default: ./database.sqlite)
+  -m, --maxFileSize <size>    Maximum file size (default: 1GB)
+                              Supports: KB, MB, GB (e.g., 500MB, 2GB)
   -h, --help                  Show this help message
 
 Examples:
   bun src/index.tsx
   bun src/index.tsx --port 8080
   bun src/index.tsx -p 8080 -d /var/files --db /var/db/files.db
+  bun src/index.tsx -m 2GB     # Set max file size to 2GB
+  bun src/index.tsx -m 500MB   # Set max file size to 500MB
 `);
   process.exit(0);
 }
