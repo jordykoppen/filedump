@@ -137,7 +137,12 @@ jobs:
         run: |
           NEW_VERSION="${{ steps.semver.outputs.new_version }}"
           RELEASE_TYPE="${{ steps.semver.outputs.release_type }}"
-          COMMITS="${{ steps.semver.outputs.commits }}"
+
+          # Read commits into variable using heredoc
+          COMMITS=$(cat <<'COMMITS_EOF'
+          ${{ steps.semver.outputs.commits }}
+          COMMITS_EOF
+          )
 
           # Create release branch
           git checkout -b "release/v${NEW_VERSION}"
@@ -190,11 +195,14 @@ jobs:
         run: |
           NEW_VERSION="${{ steps.semver.outputs.new_version }}"
           RELEASE_TYPE="${{ steps.semver.outputs.release_type }}"
-          COMMITS=$(cat <<'EOF'
+
+          # Read commits into variable using heredoc
+          COMMITS=$(cat <<'COMMITS_EOF'
           ${{ steps.semver.outputs.commits }}
-          EOF
+          COMMITS_EOF
           )
 
+          # Create PR body
           PR_BODY=$(cat <<EOF
           ## Release v${NEW_VERSION}
 
