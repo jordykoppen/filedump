@@ -9,8 +9,47 @@ permissions:
   contents: write
 
 jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      commits: ${{ steps.get_commits.outputs.commits }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(cat package.json | jq -r '.version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Get commits since last release
+        id: get_commits
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous release found, getting all commits"
+            COMMITS=$(git log --pretty=format:"- %s (%h)")
+          else
+            echo "Getting commits since $LATEST_TAG"
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)")
+          fi
+
+          {
+            echo "commits<<EOF"
+            echo "$COMMITS"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
   build:
     name: Build for ${{ matrix.target }}
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -55,7 +94,7 @@ jobs:
 
   release:
     name: Create Draft Release
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -69,21 +108,18 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R ./artifacts
 
-      - name: Get short SHA
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Create Draft Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
-          name: "Release ${{ steps.vars.outputs.sha_short }}"
-          tag_name: "build-${{ steps.vars.outputs.sha_short }}"
+          name: "v${{ needs.prepare.outputs.version }}"
+          tag_name: "v${{ needs.prepare.outputs.version }}"
           body: |
-            ## FileDump Build
+            ## FileDump v${{ needs.prepare.outputs.version }}
 
-            **Commit:** ${{ github.sha }}
-            **Branch:** main
+            ### Changes
+
+            ${{ needs.prepare.outputs.commits }}
 
             ### Binaries
             Download the appropriate binary for your platform:
