@@ -115,3 +115,12 @@ export function deleteFileMetadataByHash(hash: string): void {
     );
   }
 }
+
+export function closeDatabase(): void {
+  try {
+    database.close();
+    console.log("✓ Database connection closed");
+  } catch (error) {
+    console.error("✗ Failed to close database connection:", error);
+  }
+}

@@ -9,6 +9,7 @@ import {
   getAllFiles,
   getFileByHash,
   insertFileMetadata,
+  closeDatabase,
 } from "./utils/database";
 import { parseFileSize } from "./utils/parseFileSize";
 
@@ -140,3 +141,13 @@ const server = serve({
 });
 
 console.log(`🚀 Server running at ${server.url}`);
+
+// Graceful shutdown handlers
+function gracefulShutdown(signal: string) {
+  console.log(`\n${signal} received, closing database connection...`);
+  closeDatabase();
+  process.exit(0);
+}
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
