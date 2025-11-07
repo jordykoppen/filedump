@@ -1,19 +1,19 @@
 import bunPluginTailwind from "bun-plugin-tailwind";
 import { parseArgs } from "util";
-import zod from "zod";
+import { z } from "zod";
 import { resolve } from "node:path";
 
-const Target = zod.union([
-  zod.literal("bun-linux-x64"),
-  zod.literal("bun-linux-arm64"),
-  zod.literal("bun-windows-x64"),
-  zod.literal("bun-darwin-x64"),
-  zod.literal("bun-darwin-arm64"),
-  zod.literal("bun-linux-x64-musl"),
-  zod.literal("bun-linux-arm64-musl"),
+const Target = z.union([
+  z.literal("bun-linux-x64"),
+  z.literal("bun-linux-arm64"),
+  z.literal("bun-windows-x64"),
+  z.literal("bun-darwin-x64"),
+  z.literal("bun-darwin-arm64"),
+  z.literal("bun-linux-x64-musl"),
+  z.literal("bun-linux-arm64-musl"),
 ]);
 
-const Outfile = zod.string().min(1);
+const Outfile = z.string().min(1);
 
 const { values } = parseArgs({
   args: Bun.argv,
