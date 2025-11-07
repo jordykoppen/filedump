@@ -2,6 +2,7 @@ import {
   MagnifyingGlassIcon,
   UploadSimpleIcon,
   XIcon,
+  CircleNotchIcon,
 } from "@phosphor-icons/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
@@ -17,7 +18,9 @@ const postFile = async (file: File) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || `Upload failed with status ${response.status}`);
+    throw new Error(
+      errorText || `Upload failed with status ${response.status}`
+    );
   }
 
   return response;
@@ -86,11 +89,21 @@ export const Toolbar = ({
         onChange={handleUpload}
       />
       <button
-        className="flex items-center gap-2 px-4 py-1 text-sm rounded-sm border-gray-600 border"
+        className="flex items-center gap-2 px-4 py-1 text-sm rounded-sm border-gray-600 border disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleUploadClick}
+        disabled={mutation.isPending}
       >
-        <UploadSimpleIcon />
-        upload
+        {mutation.isPending ? (
+          <>
+            <CircleNotchIcon className="animate-spin" />
+            uploading...
+          </>
+        ) : (
+          <>
+            <UploadSimpleIcon />
+            upload
+          </>
+        )}
       </button>
     </div>
   );
