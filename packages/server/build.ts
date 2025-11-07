@@ -3,8 +3,6 @@ import { parseArgs } from "util";
 import zod from "zod";
 import { resolve } from "node:path";
 
-console.log(resolve(__dirname, ".."), __dirname);
-
 const Target = zod.union([
   zod.literal("bun-linux-x64"),
   zod.literal("bun-linux-arm64"),
