@@ -38,6 +38,43 @@ This will:
 - Start the server on port 3000
 - Enable auto-start on boot
 
+### Updating FileDump
+
+If you installed FileDump using the one-line installer, you can update to the latest version with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jordykoppen/filedump/main/update.sh | sudo bash
+```
+
+This will:
+
+- Detect your system architecture
+- Backup your current binary
+- Download the latest release
+- Stop the service, update the binary, and restart
+- Automatically rollback if the update fails
+
+**Manual update:**
+
+If you prefer to update manually, simply download the latest binary and replace the existing one:
+
+```bash
+# Stop the service
+sudo systemctl stop filedump
+
+# Backup current binary
+sudo cp /opt/filedump/filedump /opt/filedump/filedump.backup
+
+# Download latest release (example for Linux x64)
+wget https://github.com/jordykoppen/filedump/releases/latest/download/filedump-linux-x64
+sudo mv filedump-linux-x64 /opt/filedump/filedump
+sudo chmod +x /opt/filedump/filedump
+sudo chown filedump:filedump /opt/filedump/filedump
+
+# Restart the service
+sudo systemctl start filedump
+```
+
 ### Manual Installation
 
 **Download the latest release:**
