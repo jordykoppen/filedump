@@ -38,10 +38,10 @@ export const FileList = ({
                 <td className="px-2 py-1 text-white font-sans max-w-56 truncate">
                   {file.name}
                 </td>
-                <td className="px-2 py-1 lowercase">
+                <td className="px-2 py-1 lowercase text-nowrap">
                   {formatBytes(file.size)}
                 </td>
-                <td className="px-2 py-1 text-right">
+                <td className="px-2 py-1 text-right text-nowrap">
                   {format(new Date(file.createdAt), "dd/MM/yyyy HH:mm")}
                 </td>
               </tr>
