@@ -2,7 +2,6 @@ import cliArguments from "./utils/cliArguments";
 import { serve } from "bun";
 import index from "./index.html";
 import { APIGetFileInput, parseFileSize } from "@filedump/shared";
-import { hashFile } from "./utils/crypto";
 import {
   checkFileExists,
   deleteFileMetadataByHash,
@@ -30,7 +29,6 @@ const server = serve({
     "/api/file": {
       async POST(request) {
         try {
-          const arrayBuffer = await request.arrayBuffer();
           const fileName = request.headers.get("X-Filename");
           const fileType = request.headers.get("Content-Type");
 
@@ -42,43 +40,97 @@ const server = serve({
             return new Response("Missing Content-Type header", { status: 400 });
           }
 
-          if (arrayBuffer.byteLength > maxFileSizeBytes) {
-            return new Response("File size exceeds maximum limit", {
-              status: 413,
+          if (!request.body) {
+            return new Response("Missing request body", { status: 400 });
+          }
+
+          // Write directly to the destination path (no temp file, no rename)
+          const finalPath = `${cliArguments.fileDirectory}/${fileName}`;
+
+          // Preflight: do not overwrite existing files with same name
+          if (await Bun.file(finalPath).exists()) {
+            return new Response("File already exists at destination", {
+              status: 409,
             });
           }
 
-          const fileHash = await hashFile(arrayBuffer);
-          const path = `${cliArguments.fileDirectory}/${fileHash}`;
+          // Stream the file directly to disk without buffering in memory
+          let totalBytes = 0;
+          const fileWriter = Bun.file(finalPath).writer();
+          const reader = request.body!.getReader();
 
-          // Try to insert metadata first to prevent race condition
-          // If another request already inserted this hash, the PRIMARY KEY constraint will fail
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              totalBytes += value.byteLength;
+              if (totalBytes > maxFileSizeBytes) {
+                reader.releaseLock();
+                fileWriter.end();
+                // Delete the partially written file
+                await Bun.file(finalPath).delete();
+                return new Response("File size exceeds maximum limit", {
+                  status: 413,
+                });
+              }
+
+              fileWriter.write(value);
+            }
+          } finally {
+            reader.releaseLock();
+            fileWriter.end();
+          }
+
+          // Hash the file after it's written to disk (streaming from disk)
+          const hasher = new Bun.CryptoHasher("sha256");
+          const file = Bun.file(finalPath);
+          const fileStream = file.stream();
+          const fileReader = fileStream.getReader();
+
+          try {
+            while (true) {
+              const { done, value } = await fileReader.read();
+              if (done) break;
+              hasher.update(value);
+            }
+          } finally {
+            fileReader.releaseLock();
+          }
+
+          const fileHash = hasher.digest("hex");
+
+          // Try to insert metadata; if hash already exists, just return the existing record without removing/renaming anything
           let insertedFileMetadata;
           try {
             insertedFileMetadata = insertFileMetadata({
               name: fileName,
               hash: fileHash,
               mimeType: fileType,
-              path,
+              path: finalPath,
               createdAt: new Date().toISOString(),
-              size: arrayBuffer.byteLength,
+              size: totalBytes,
             });
           } catch (dbError) {
-            // Check if duplicate file already exists
-            if (checkFileExists(fileHash)) {
-              return new Response("File already exists", { status: 409 });
+            const existing = getFileByHash(fileHash);
+            if (existing) {
+              console.log(
+                `[UPLOAD DUPLICATE] kept new file at ${finalPath}, existing hash ${fileHash.slice(
+                  0,
+                  8
+                )}...`
+              );
+
+              return Response.json(existing);
             }
-            // If not a duplicate, re-throw the error
             throw dbError;
           }
 
-          // Only write file after successful database insert
-          await Bun.write(path, arrayBuffer);
-
           console.log(
-            `[UPLOAD] ${fileName} (${fileHash.slice(0, 8)}...) - ${
-              arrayBuffer.byteLength
-            } bytes`
+            `[UPLOAD] ${fileName} (${fileHash.slice(
+              0,
+              8
+            )}...) - ${totalBytes} bytes`
           );
 
           return Response.json(insertedFileMetadata);
@@ -106,10 +158,13 @@ const server = serve({
             } bytes`
           );
 
-          return new Response(Bun.file(fileRecord.path), {
+          const file = Bun.file(fileRecord.path);
+
+          return new Response(file, {
             headers: {
               "Content-Disposition": `attachment; filename="${fileRecord.name}"`,
               "Content-Type": fileRecord.mimeType || "application/octet-stream",
+              "Content-Length": fileRecord.size.toString(),
             },
           });
         } catch (error) {

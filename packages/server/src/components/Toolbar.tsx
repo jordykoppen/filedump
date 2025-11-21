@@ -46,7 +46,7 @@ export const Toolbar = ({
     },
     onError: (error) => {
       console.error("Upload failed:", error);
-      alert("Failed to upload file. Please try again.");
+      alert(error);
     },
   });
 
